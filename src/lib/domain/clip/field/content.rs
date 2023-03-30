@@ -1,4 +1,4 @@
-use super::ClipError;
+use super::super::ClipError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use super::ClipError;
+use super::super::ClipError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
