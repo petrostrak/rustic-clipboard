@@ -1,6 +1,6 @@
 use derive_more::{Display, From};
 use serde::{Deserialize, Serialize};
-use sqlx::{Database, Sqlite};
+use sqlx::Sqlite;
 use std::str::FromStr;
 use uuid::Uuid;
 
@@ -15,6 +15,25 @@ pub type DatabasePool = sqlx::SqlitePool;
 pub type Transaction<'t> = sqlx::Transaction<'t, Sqlite>;
 pub type AppDatabaseRow = sqlx::sqlite::SqliteRow;
 pub type AppQueryResult = sqlx::sqlite::SqliteQueryResult;
+
+pub struct Database<D: sqlx::Database>(sqlx::Pool<D>);
+impl Database<Sqlite> {
+    pub async fn new(conn: &str) -> Self {
+        let pool = sqlx::sqlite::SqlitePoolOptions::new().connect(conn).await;
+        match pool {
+            Ok(pool) => Self(pool),
+            Err(e) => {
+                eprintln!("{}\n", e);
+                eprintln!("If the DB has not yet been created, run: \n $ sqlx database setup\n");
+                panic!("DB error")
+            }
+        }
+    }
+
+    pub fn get_pool(&self) -> &DatabasePool {
+        &self.0
+    }
+}
 
 #[derive(Debug, Clone, From, Display, Serialize, Deserialize)]
 pub struct Dbid(Uuid);
