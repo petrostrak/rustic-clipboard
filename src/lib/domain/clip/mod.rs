@@ -22,12 +22,12 @@ pub enum ClipError {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Clip {
-    pub clip_id: field::ClipId,
-    pub shortcode: field::ShortCode,
-    pub content: field::Content,
-    pub title: field::Title,
-    pub posted: field::Posted,
-    pub expires: field::Expires,
-    pub password: field::Password,
-    pub hits: field::Hits,
+    pub clip_id: field::ClipId,      // The id of the clip
+    pub shortcode: field::ShortCode, // The url-code to access a clip
+    pub content: field::Content,     // The content of a clip
+    pub title: field::Title,         // The title of a clip
+    pub posted: field::Posted,       // The date that a clip is posted
+    pub expires: field::Expires,     // The date that a clip expires
+    pub password: field::Password,   // The password to access a clip
+    pub hits: field::Hits,           // Number of times the clip has been seen
 }
