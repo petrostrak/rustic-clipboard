@@ -35,3 +35,8 @@ impl TryFrom<Clip> for crate::domain::Clip {
         })
     }
 }
+
+// GetClip retrieves a clip from DB
+pub struct GetClip {
+    pub(in crate::data) shortcode: String,
+}
