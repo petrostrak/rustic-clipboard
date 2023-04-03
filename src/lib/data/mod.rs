@@ -62,3 +62,9 @@ impl FromStr for Dbid {
         Ok(Dbid(Uuid::parse_str(s)?))
     }
 }
+
+impl From<Dbid> for String {
+    fn from(value: Dbid) -> Self {
+        format!("{}", value.0)
+    }
+}
