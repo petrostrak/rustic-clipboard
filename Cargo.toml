@@ -23,3 +23,5 @@ handlebars = {version = "4", features = ["dir_source"]}
 rocket = {version = "0.5.0-rc.1", features = ["json"]}
 structopt = "0.3"
 tokio = "1.26.0"
+crossbeam-channel = "0.5.7"
+parking_lot = "0.12.1"

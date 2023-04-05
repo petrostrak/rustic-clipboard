@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use rusticlipboard::data::AppDatabase;
-use rusticlipboard::web::renderer::Renderer;
+use rusticlipboard::web::{hitcounter::HitCounter, renderer::Renderer};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -20,16 +20,21 @@ fn main() {
     let rt = tokio::runtime::Runtime::new().expect("failed to spawn tokio runtime");
 
     let handle = rt.handle().clone();
+    let renderer = Renderer::new(opt.template_directory.clone());
+
+    let database = rt.block_on(async move { AppDatabase::new(&opt.connection_string).await });
+
+    let hit_counter = HitCounter::new(database.get_pool().clone(), handle.clone());
+    let config = rusticlipboard::RocketConfig {
+        renderer,
+        database,
+        hit_counter,
+    };
 
     rt.block_on(async move {
-        let renderer = Renderer::new(opt.template_directory);
-        let database = AppDatabase::new(&opt.connection_string).await;
-
-        let config = rusticlipboard::RocketConfig { renderer, database };
-
         rusticlipboard::rocket(config)
             .launch()
             .await
-            .expect("failed to launch rocket server");
+            .expect("failed to launch rocket server")
     });
 }
