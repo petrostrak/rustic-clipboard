@@ -27,3 +27,16 @@ Include api keys to migrations
 ```
 sqlx migrate add api_key
 ```
+### CLI
+To create new clips
+```
+cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== new "<clip>"
+```
+To get a clip
+```
+cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== get <shortcode>
+```
+To update a clip
+```
+cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== update <clip> <shortcode>
+```
