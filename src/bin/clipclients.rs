@@ -49,6 +49,18 @@ struct Opt {
     api_key: ApiKey,
 }
 
+fn get_clip(addr: &str, ask_svc: GetClip, api_key: ApiKey) -> Result<Clip, Box<dyn Error>> {
+    let client = reqwest::blocking::Client::builder().build()?;
+    let addr = format!("{}/api/clip/{}", addr, ask_svc.shortcode.into_inner());
+    let mut req = client.get(addr);
+    req = match ask_svc.password.into_inner() {
+        Some(password) => req.header(reqwest::header::COOKIE, format!("password={}", password)),
+        None => req,
+    };
+    req = req.header(API_KEY_HEADER, api_key.to_base64());
+    Ok(req.send()?.json()?)
+}
+
 fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     match opt.command {
         Command::Get {
