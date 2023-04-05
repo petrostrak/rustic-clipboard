@@ -23,3 +23,7 @@ export DATABASE_URL="sqlite:data.db"
 ```
 sqlx db create && sqlx migrate run
 ```
+Include api keys to migrations
+```
+sqlx migrate add api_key
+```
