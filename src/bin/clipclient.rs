@@ -42,7 +42,7 @@ struct Opt {
     #[structopt(subcommand)]
     command: Command,
 
-    #[structopt(default_value = "http://127.0.0.1:8080", env = "RUSTICLIPBOARD_ADDR")]
+    #[structopt(default_value = "http://127.0.0.1:8000", env = "RUSTICLIPBOARD_ADDR")]
     addr: String,
 
     #[structopt(long)]
@@ -69,6 +69,14 @@ fn new_clip(addr: &str, ask_svc: NewClip, api_key: ApiKey) -> Result<Clip, Box<d
     Ok(req.json(&ask_svc).send()?.json()?)
 }
 
+fn update_clip(addr: &str, ask_svc: UpdateClip, api_key: ApiKey) -> Result<Clip, Box<dyn Error>> {
+    let client = reqwest::blocking::Client::builder().build()?;
+    let addr = format!("{}/api/clip", addr);
+    let mut req = client.put(addr);
+    req = req.header(API_KEY_HEADER, api_key.to_base64());
+    Ok(req.json(&ask_svc).send()?.json()?)
+}
+
 fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     match opt.command {
         Command::Get {
@@ -79,7 +87,9 @@ fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 password: Password::new(password.unwrap_or_default())?,
                 shortcode,
             };
-            todo!()
+            let clip = get_clip(opt.addr.as_str(), req, opt.api_key)?;
+            println!("{:#?}", clip);
+            Ok(())
         }
         Command::New {
             clip,
@@ -93,7 +103,9 @@ fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 expires: expires.unwrap_or_default(),
                 password: password.unwrap_or_default(),
             };
-            todo!()
+            let clip = new_clip(opt.addr.as_str(), req, opt.api_key)?;
+            println!("{:#?}", clip);
+            Ok(())
         }
         Command::Update {
             clip,
@@ -101,7 +113,24 @@ fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             title,
             expires,
             password,
-        } => todo!(),
+        } => {
+            let password = password.unwrap_or_default();
+            let svc_req = GetClip {
+                password: password.clone(),
+                shortcode: shortcode.clone(),
+            };
+            let original_clip = get_clip(opt.addr.as_str(), svc_req, opt.api_key.clone())?;
+            let svc_req = UpdateClip {
+                content: Content::new(clip.as_str())?,
+                expires: expires.unwrap_or(original_clip.expires),
+                title: title.unwrap_or(original_clip.title),
+                password,
+                shortcode,
+            };
+            let clip = update_clip(opt.addr.as_str(), svc_req, opt.api_key)?;
+            println!("{:#?}", clip);
+            Ok(())
+        }
     }
 }
 
