@@ -5,7 +5,9 @@ use derive_more::From;
 use rocket::{UriDisplayPath, UriDisplayQuery};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, From, UriDisplayPath, UriDisplayQuery)]
+#[derive(
+    Debug, Clone, Serialize, Deserialize, From, UriDisplayPath, UriDisplayQuery, Hash, PartialEq, Eq,
+)]
 pub struct ShortCode(String);
 impl ShortCode {
     pub fn new() -> Self {
