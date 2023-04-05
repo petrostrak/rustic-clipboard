@@ -117,3 +117,32 @@ impl<'r> FromRequest<'r> for ApiKey {
         }
     }
 }
+
+pub async fn new_api_key(database: &State<AppDatabase>) -> Result<Json<&str>, ApiError> {
+    let api_key = action::generate_api_key(database.get_pool()).await?;
+    println!("API_KEY: {}", api_key.to_base64());
+    Ok(Json("Api key generated. See logs for details."))
+}
+
+#[rocket::get("/<shortcode>")]
+pub async fn get_clip(
+    shortcode: &str,
+    database: &State<AppDatabase>,
+    cookie: &CookieJar<'_>,
+    hit_counter: &State<HitCounter>,
+    _api_key: ApiKey,
+) -> Result<Json<crate::Clip>, ApiError> {
+    use crate::domain::clip::field::Password;
+    let req = service::ask::GetClip {
+        shortcode: shortcode.into(),
+        password: cookie
+            .get(PASSWORD_COOKIE)
+            .map(|c| c.value())
+            .map(|raw_pass| Password::new(raw_pass.to_string()).ok())
+            .flatten()
+            .unwrap_or_else(Password::default),
+    };
+    let clip = action::get_clip(req, database.get_pool()).await?;
+    hit_counter.hit(shortcode.into(), 1);
+    Ok(Json(clip))
+}
