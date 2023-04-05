@@ -146,3 +146,12 @@ pub async fn get_clip(
     hit_counter.hit(shortcode.into(), 1);
     Ok(Json(clip))
 }
+
+#[rocket::post("/", data = "<req>")]
+pub async fn new_clip(
+    req: Json<service::ask::NewClip>,
+    database: &State<AppDatabase>,
+) -> Result<Json<crate::Clip>, ApiError> {
+    let clip = action::new_clip(req.into_inner(), database.get_pool()).await?;
+    Ok(Json(clip))
+}
