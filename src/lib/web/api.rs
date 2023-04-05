@@ -118,6 +118,7 @@ impl<'r> FromRequest<'r> for ApiKey {
     }
 }
 
+#[rocket::get("/key")]
 pub async fn new_api_key(database: &State<AppDatabase>) -> Result<Json<&str>, ApiError> {
     let api_key = action::generate_api_key(database.get_pool()).await?;
     println!("API_KEY: {}", api_key.to_base64());
@@ -151,6 +152,7 @@ pub async fn get_clip(
 pub async fn new_clip(
     req: Json<service::ask::NewClip>,
     database: &State<AppDatabase>,
+    _api_key: ApiKey,
 ) -> Result<Json<crate::Clip>, ApiError> {
     let clip = action::new_clip(req.into_inner(), database.get_pool()).await?;
     Ok(Json(clip))
@@ -160,7 +162,55 @@ pub async fn new_clip(
 pub async fn update_clip(
     req: Json<service::ask::UpdateClip>,
     database: &State<AppDatabase>,
+    _api_key: ApiKey,
 ) -> Result<Json<crate::Clip>, ApiError> {
     let clip = action::update_clip(req.into_inner(), database.get_pool()).await?;
     Ok(Json(clip))
+}
+
+pub fn routes() -> Vec<rocket::Route> {
+    rocket::routes![get_clip, new_clip, update_clip, new_api_key]
+}
+
+pub mod catcher {
+    use rocket::serde::json::Json;
+    use rocket::Request;
+    use rocket::{catch, catchers, Catcher};
+
+    #[catch(default)]
+    fn default(req: &Request) -> Json<&'static str> {
+        eprintln!("General error: {:?}", req);
+        Json("something went wrong")
+    }
+
+    #[catch(500)]
+    fn internal_error(req: &Request) -> Json<&'static str> {
+        eprintln!("Internal error: {:?}", req);
+        Json("internal server error")
+    }
+
+    #[catch(404)]
+    fn not_found() -> Json<&'static str> {
+        Json("404")
+    }
+
+    #[catch(401)]
+    fn request_error() -> Json<&'static str> {
+        Json("request error")
+    }
+
+    #[catch(400)]
+    fn api_key_error() -> Json<&'static str> {
+        Json("missing api key")
+    }
+
+    pub fn catchers() -> Vec<Catcher> {
+        catchers![
+            not_found,
+            default,
+            internal_error,
+            request_error,
+            api_key_error
+        ]
+    }
 }
