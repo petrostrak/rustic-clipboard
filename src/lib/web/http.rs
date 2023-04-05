@@ -1,15 +1,14 @@
+use super::PASSWORD_COOKIE;
 use crate::data::AppDatabase;
 use crate::service;
 use crate::service::action;
-use crate::web::{ctx, form, renderer::Renderer, PageError};
+use crate::web::{ctx, form, hitcounter::HitCounter, renderer::Renderer, PageError};
 use crate::{ServiceError, ShortCode};
 use rocket::form::{Contextual, Form};
 use rocket::http::{Cookie, CookieJar, Status};
 use rocket::response::content::RawHtml;
 use rocket::response::{status, Redirect};
 use rocket::{uri, State};
-
-use super::PASSWORD_COOKIE;
 
 #[rocket::get("/")]
 fn home(renderer: &State<Renderer<'_>>) -> RawHtml<String> {
@@ -70,6 +69,7 @@ pub async fn get_clip(
     shortcode: ShortCode,
     database: &State<AppDatabase>,
     renderer: &State<Renderer<'_>>,
+    hit_counter: &State<HitCounter>,
 ) -> Result<status::Custom<RawHtml<String>>, PageError> {
     fn render_with_status<T: ctx::PageContext + serde::Serialize + std::fmt::Debug>(
         status: Status,
@@ -84,6 +84,7 @@ pub async fn get_clip(
 
     match action::get_clip(shortcode.clone().into(), database.get_pool()).await {
         Ok(clip) => {
+            hit_counter.hit(shortcode.clone(), 1);
             let context = ctx::ViewClip::new(clip);
             render_with_status(Status::Ok, context, renderer)
         }
@@ -105,6 +106,7 @@ pub async fn submit_clip_password(
     form: Form<Contextual<'_, form::GetPasswordProtectedClip>>,
     database: &State<AppDatabase>,
     renderer: &State<Renderer<'_>>,
+    hit_counter: &State<HitCounter>,
 ) -> Result<RawHtml<String>, PageError> {
     if let Some(form) = &form.value {
         let req = service::ask::GetClip {
@@ -113,6 +115,7 @@ pub async fn submit_clip_password(
         };
         match action::get_clip(req, database.get_pool()).await {
             Ok(clip) => {
+                hit_counter.hit(shortcode.clone(), 1);
                 let context = ctx::ViewClip::new(clip);
                 cookies.add(Cookie::new(
                     PASSWORD_COOKIE,
@@ -143,10 +146,11 @@ pub async fn get_raw_clip(
     cookies: &CookieJar<'_>,
     shortcode: ShortCode,
     database: &State<AppDatabase>,
+    hit_counter: &State<HitCounter>,
 ) -> Result<status::Custom<String>, Status> {
     use crate::domain::clip::field::Password;
     let req = service::ask::GetClip {
-        shortcode: shortcode.into(),
+        shortcode: shortcode.clone(),
         password: cookies
             .get(PASSWORD_COOKIE)
             .map(|cookie| cookie.value())
@@ -155,7 +159,10 @@ pub async fn get_raw_clip(
             .unwrap_or_else(Password::default),
     };
     match action::get_clip(req, database.get_pool()).await {
-        Ok(clip) => Ok(status::Custom(Status::Ok, clip.content.into_inner())),
+        Ok(clip) => {
+            hit_counter.hit(shortcode.clone(), 1);
+            Ok(status::Custom(Status::Ok, clip.content.into_inner()))
+        }
         Err(e) => match e {
             ServiceError::PermissionError(msg) => Ok(status::Custom(Status::Unauthorized, msg)),
             ServiceError::NotFound => Err(Status::NotFound),
