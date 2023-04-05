@@ -72,3 +72,19 @@ pub async fn update_clip<M: Into<model::UpdateClip>>(
     .await?;
     get_clip(model.shortcode, pool).await
 }
+
+pub async fn increase_hit_counter(
+    shortcode: &ShortCode,
+    hits: u32,
+    pool: &DatabasePool,
+) -> Result<()> {
+    let shortcode = shortcode.as_str();
+    Ok(sqlx::query!(
+        "UPDATE clips SET hits = hits + ? WHERE shortcode = ?",
+        hits,
+        shortcode,
+    )
+    .execute(pool)
+    .await
+    .map(|_| ())?)
+}
