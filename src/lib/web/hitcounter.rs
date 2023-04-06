@@ -2,7 +2,7 @@ use crate::data::DatabasePool;
 use crate::service::{self, ServiceError};
 use crate::ShortCode;
 use crossbeam_channel::TryRecvError;
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{unbounded, Sender};
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -90,7 +90,7 @@ impl HitCounter {
                     Err(e) => match e {
                         TryRecvError::Empty => {
                             std::thread::sleep(Duration::from_secs(5));
-                            if let Err(e) = tx_clone.send(HitCountMsg::Commit) {
+                            if let Err(_) = tx_clone.send(HitCountMsg::Commit) {
                                 eprintln!("error sending commit msg to hits channel")
                             }
                         }
