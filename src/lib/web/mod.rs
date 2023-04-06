@@ -35,6 +35,8 @@ impl From<serde_json::Error> for PageError {
 
 #[cfg(test)]
 pub mod test {
+    use rocket::local::blocking::Client;
+
     use crate::test::async_runtime;
     use crate::RocketConfig;
 
@@ -55,5 +57,10 @@ pub mod test {
             hit_counter,
             maintenance,
         }
+    }
+
+    pub fn client() -> Client {
+        let config = config();
+        Client::tracked(crate::rocket(config)).expect("failed to build rocket instance")
     }
 }
