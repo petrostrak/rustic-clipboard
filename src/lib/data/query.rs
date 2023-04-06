@@ -36,7 +36,7 @@ pub async fn new_clip<M: Into<model::NewClip>>(
             expires,
             password,
             hits)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"#,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)"#,
         model.clip_id,
         model.shortcode,
         model.content,

@@ -200,3 +200,16 @@ pub mod catcher {
         catchers![not_found, default, internal_error]
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use crate::web::test::client;
+    use rocket::http::Status;
+
+    #[test]
+    fn get_home() {
+        let client = client();
+        let resp = client.get("/").dispatch();
+        assert_eq!(resp.status(), Status::Ok);
+    }
+}
