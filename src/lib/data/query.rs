@@ -165,4 +165,18 @@ pub mod test {
             password: None,
         }
     }
+
+    #[test]
+    fn clip_new_and_get() {
+        let rt = async_runtime();
+        let db = new_db(rt.handle());
+        let pool = db.get_pool();
+
+        let clip =
+            rt.block_on(async move { super::new_clip(model_new_clip("1"), &pool.clone()).await });
+        assert!(clip.is_ok());
+        let clip = clip.unwrap();
+        assert!(clip.shortcode == "1");
+        assert!(clip.content == format!("content for clip '1'"));
+    }
 }
