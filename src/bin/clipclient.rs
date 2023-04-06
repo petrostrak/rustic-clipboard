@@ -4,7 +4,6 @@ use rusticlipboard::web::api::{ApiKey, API_KEY_HEADER};
 use rusticlipboard::Clip;
 use std::error::Error;
 use structopt::StructOpt;
-use strum::EnumString;
 
 #[derive(Debug, StructOpt)]
 enum Command {
