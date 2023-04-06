@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use rusticlipboard::data::AppDatabase;
+use rusticlipboard::domain::maintenance::Maintenance;
 use rusticlipboard::web::{hitcounter::HitCounter, renderer::Renderer};
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -25,10 +26,14 @@ fn main() {
     let database = rt.block_on(async move { AppDatabase::new(&opt.connection_string).await });
 
     let hit_counter = HitCounter::new(database.get_pool().clone(), handle.clone());
+
+    let maintenance = Maintenance::spawn(database.get_pool().clone(), handle.clone());
+
     let config = rusticlipboard::RocketConfig {
         renderer,
         database,
         hit_counter,
+        maintenance,
     };
 
     rt.block_on(async move {
