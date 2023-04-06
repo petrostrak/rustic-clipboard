@@ -32,3 +32,28 @@ impl From<serde_json::Error> for PageError {
         PageError::Serialization(format!("{}", value))
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use crate::test::async_runtime;
+    use crate::RocketConfig;
+
+    pub fn config() -> RocketConfig {
+        use crate::web::{renderer::Renderer, HitCounter};
+        let rt = async_runtime();
+        let renderer = Renderer::new("templates/".into());
+        let database = crate::data::test::new_db(rt.handle());
+        let maintenance = crate::domain::maintenance::Maintenance::spawn(
+            database.get_pool().clone(),
+            rt.handle().clone(),
+        );
+        let hit_counter = HitCounter::new(database.get_pool().clone(), rt.handle().clone());
+
+        RocketConfig {
+            renderer,
+            database,
+            hit_counter,
+            maintenance,
+        }
+    }
+}
