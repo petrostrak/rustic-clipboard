@@ -44,3 +44,5 @@ To update a clip
 ```
 cargo run --bin clipclient -- --api-key <api_key> update <clip> <shortcode>
 ```
+![alt text](https://github.com/petrostrak/rustic-clipboard/blob/main/rustic_1.png)
+![alt text](https://github.com/petrostrak/rustic-clipboard/blob/main/rustic_2.png)
