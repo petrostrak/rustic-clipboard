@@ -28,15 +28,19 @@ Include api keys to migrations
 sqlx migrate add api_key
 ```
 ### CLI
+In order to create, get or edit clips from the cli, an `api key` is needed. To generate one:
+```
+http://127.0.0.1:8000/api/clip/key
+```
 To create new clips
 ```
-cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== new "<clip>"
+cargo run --bin clipclient -- --api-key <api_key> new "<clip>"
 ```
 To get a clip
 ```
-cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== get <shortcode>
+cargo run --bin clipclient -- --api-key <api_key> get <shortcode>
 ```
 To update a clip
 ```
-cargo run --bin clipclient -- --api-key QrcRxFx9CgyGUSgaKw9xqA== update <clip> <shortcode>
+cargo run --bin clipclient -- --api-key <api_key> update <clip> <shortcode>
 ```
